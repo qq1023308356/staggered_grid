@@ -4,7 +4,8 @@ import 'package:flutter/rendering.dart';
 
 /// 具有子列表的渲染对象的通用 Mixin。
 ///
-/// 为渲染对象子类提供一个子模型，将子项存储在 HashMap 中。
+/// 为渲染对象子类提供一个子模型，将子项存储在 HashMap (具体为 SplayTreeMap) 中。
+/// 使用 SplayTreeMap 是为了保持键（索引）的顺序。
 mixin TileContainerRenderObjectMixin<ChildType extends RenderObject, ParentDataType extends ParentData>
     on RenderObject {
   final SplayTreeMap<int, ChildType> _childRenderObjects = SplayTreeMap<int, ChildType>();
@@ -12,8 +13,11 @@ mixin TileContainerRenderObjectMixin<ChildType extends RenderObject, ParentDataT
   /// 子项的数量。
   int get childCount => _childRenderObjects.length;
 
+  /// 返回所有子项的迭代器。
+  /// 注意：返回的顺序是按索引从小到大的顺序（绘制顺序）。
   Iterable<ChildType> get children => _childRenderObjects.values;
 
+  /// 返回所有子项索引的迭代器。
   Iterable<int> get indices => _childRenderObjects.keys;
 
   /// 检查给定的渲染对象是否具有正确的 [runtimeType] 以成为此渲染对象的子项。

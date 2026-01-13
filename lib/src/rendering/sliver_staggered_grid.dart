@@ -211,6 +211,8 @@ class RenderSliverStaggeredGrid extends RenderSliverVariableSizeBoxAdaptor {
     _gridDelegate = value;
   }
 
+  /// 缓存不同页面大小（pageSize）对应的视口偏移量。
+  /// 这里的 key 是 pageSize。
   final HashMap<double, SplayTreeMap<int, _ViewportOffsets?>> _pageSizeToViewportOffsets;
 
   @override
@@ -242,6 +244,15 @@ class RenderSliverStaggeredGrid extends RenderSliverVariableSizeBoxAdaptor {
     final pageIndex = scrollOffset ~/ pageSize;
     assert(pageIndex >= 0);
 
+    // [优化]: 限制缓存大小。在桌面端调整窗口大小时，viewportMainAxisExtent 会变化，
+    // 导致 pageSize 频繁变化。如果不限制，这个 Map 会无限膨胀导致内存泄漏。
+    // 我们保留少量最近使用的缓存以应对屏幕旋转（横屏/竖屏切换）。
+    if (!_pageSizeToViewportOffsets.containsKey(pageSize)) {
+      if (_pageSizeToViewportOffsets.length >= 4) {
+        _pageSizeToViewportOffsets.clear();
+      }
+    }
+
     // 如果视口调整大小，我们将保留旧的偏移量缓存。（如果仅方向多次更改，这将很有用）。
     final viewportOffsets =
         _pageSizeToViewportOffsets.putIfAbsent(pageSize, () => SplayTreeMap<int, _ViewportOffsets?>());
@@ -272,6 +283,7 @@ class RenderSliverStaggeredGrid extends RenderSliverVariableSizeBoxAdaptor {
       RenderBox? child;
       if (!hasTrailingScrollOffset) {
         // 布局子项以计算其 tailingScrollOffset。
+        // parentUsesSize 设置为 true，因为我们需要子项的尺寸来计算偏移量。
         final constraints = BoxConstraints.tightFor(width: geometry.crossAxisExtent);
         child = addAndLayoutChild(index, constraints, parentUsesSize: true);
         geometry = geometry.copyWith(mainAxisExtent: paintExtentOf(child!));
@@ -401,6 +413,9 @@ class RenderSliverStaggeredGrid extends RenderSliverVariableSizeBoxAdaptor {
 
   /// 在 [offsets] 列表中查找至少具有指定 [crossAxisCount] 的第一个可用块。
   static _Block _findFirstAvailableBlockWithCrossAxisCount(int crossAxisCount, List<double> offsets) {
+    // 这里使用 List.from 复制一份 offsets，因为 _findFirstAvailableBlockWithCrossAxisCountAndOffsets
+    // 是一种尝试填充（Try-Fill）算法，它会修改传入的列表来模拟填充过程。
+    // 我们不能修改原始的 offsets 列表。
     return _findFirstAvailableBlockWithCrossAxisCountAndOffsets(crossAxisCount, List.from(offsets));
   }
 
@@ -409,7 +424,7 @@ class RenderSliverStaggeredGrid extends RenderSliverVariableSizeBoxAdaptor {
     final block = _findFirstAvailableBlock(offsets);
     if (block.crossAxisCount < crossAxisCount) {
       // 空间不足以容纳指定的交叉轴数量。
-      // 我们必须填充这个块并重试。
+      // 我们必须填充这个块并重试（递归调用）。
       for (var i = 0; i < block.crossAxisCount; ++i) {
         offsets[i + block.index] = block.maxOffset;
       }

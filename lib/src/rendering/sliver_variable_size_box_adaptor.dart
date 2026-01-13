@@ -11,20 +11,29 @@ abstract class RenderSliverVariableSizeBoxChildManager {
   /// 其索引和滚动偏移将自动被适当地设置。
   ///
   /// `index` 参数给出了要显示的子项的索引。可能会请求负索引。
+  /// 例如：如果用户从子项 0 滚动到子项 10，然后这些子项变小了很多，
+  /// 然后用户又向上滚动，最终可能会请求生成索引为 -1 的子项。
   ///
   /// 如果没有对应 `index` 的子项，则不执行任何操作。
   ///
-  /// [RenderSliverVariableSizeBoxAdaptor] 对象在此帧期间未创建且未更新的其他子项，
-  /// 在调用 [createChild] 期间可以被移除。向此渲染对象添加任何其他子项是无效的。
+  /// 索引零对应的子项取决于 [RenderSliverVariableSizeBoxAdaptor.constraints] 中指定的
+  /// [GrowthDirection]。
+  ///
+  /// 在调用 [createChild] 期间，如果是本帧未创建且未更新的子项，
+  /// 从 [RenderSliverVariableSizeBoxAdaptor] 对象中移除它们是有效的。
+  /// 向此渲染对象添加任何其他子项是无效的。
   ///
   /// 如果此方法没有为大于或等于零的给定 `index` 创建子项，
-  /// 那么 [computeMaxScrollOffset] 必须能够返回一个精确值。
+  /// 那么 [estimateMaxScrollOffset] 必须能够返回一个精确值。
   void createChild(int index);
 
   /// 从子列表中移除给定的子项。
   ///
   /// 由 [RenderSliverVariableSizeBoxAdaptor.collectGarbage] 调用，
   /// 而后者又由 [RenderSliverVariableSizeBoxAdaptor.performLayout] 调用。
+  ///
+  /// 给定子项的索引可以通过 [RenderSliverVariableSizeBoxAdaptor.indexOf] 方法获得，
+  /// 该方法从子项 [RenderObject.parentData] 的 [SliverVariableSizeBoxAdaptorParentData.index] 字段读取。
   void removeChild(RenderBox child);
 
   /// 调用以估计此对象的总可滚动范围。
@@ -41,6 +50,9 @@ abstract class RenderSliverVariableSizeBoxChildManager {
   /// 调用以获取子项总数的精确度量。
   ///
   /// 必须返回比 `createChild` 实际创建子项的最大 `index` 大一的数字。
+  ///
+  /// 当 [createChild] 无法为正 `index` 添加子项时，用于确定 sliver 的精确尺寸。
+  /// 它必须返回一个准确且精确的非空值。
   int get childCount;
 
   /// 在 [RenderSliverVariableSizeBoxAdaptor.adoptChild] 期间调用。
@@ -51,6 +63,9 @@ abstract class RenderSliverVariableSizeBoxChildManager {
 
   /// 在布局期间调用，指示此对象提供的子项是否不足以填充
   /// [RenderSliverVariableSizeBoxAdaptor] 的 [SliverConstraints.remainingPaintExtent]。
+  ///
+  /// 通常在布局开始时无条件调用 false，然后在 [RenderSliverVariableSizeBoxAdaptor]
+  /// 无法创建填充 [SliverConstraints.remainingPaintExtent] 所需的子项时调用 true。
   // ignore: avoid_positional_boolean_parameters
   void setDidUnderflow(bool value);
 
@@ -87,7 +102,10 @@ class SliverVariableSizeBoxAdaptorParentData extends SliverMultiBoxAdaptorParent
 /// 子项由 [RenderSliverVariableSizeBoxChildManager] 管理，它允许子类在布局期间懒加载创建子项。
 /// 通常，子类只会创建填充 [SliverConstraints.remainingPaintExtent] 所需的那些子项。
 ///
-/// 从此渲染对象添加和移除子项的契约比普通渲染对象更严格。
+/// 从此渲染对象添加和移除子项的契约比普通渲染对象更严格：
+///
+/// * 可以在布局过程中移除子项，前提是它们在该布局过程中已经被布局过。
+/// * 只能在调用 [childManager] 期间添加子项，并且仅当没有对应于该索引的子项时（或者对应于该索引的子项首先被移除）。
 abstract class RenderSliverVariableSizeBoxAdaptor extends RenderSliver
     with
         TileContainerRenderObjectMixin<RenderBox, SliverVariableSizeBoxAdaptorParentData>,
@@ -107,11 +125,15 @@ abstract class RenderSliverVariableSizeBoxAdaptor extends RenderSliver
   }
 
   /// 管理此对象子项的代理。
+  ///
+  /// [RenderSliverVariableSizeBoxAdaptor] 不具有具体的子项列表，而是使用
+  /// [RenderSliverVariableSizeBoxChildManager] 在布局期间创建子项，以填充
+  /// [SliverConstraints.remainingPaintExtent]。
   @protected
   RenderSliverVariableSizeBoxChildManager get childManager => _childManager;
   final RenderSliverVariableSizeBoxChildManager _childManager;
 
-  /// 尽管不可见但仍保持存活的节点。
+  /// 尽管不可见但仍保持存活的节点（缓存桶）。
   final Map<int, RenderBox> _keepAliveBucket = <int, RenderBox>{};
 
   @override
@@ -176,6 +198,7 @@ abstract class RenderSliverVariableSizeBoxAdaptor extends RenderSliver
   void _destroyOrCacheChild(int index) {
     final RenderBox child = this[index]!;
     final childParentData = child.parentData! as SliverVariableSizeBoxAdaptorParentData;
+    // 如果子项要求保持存活（keepAlive 为 true），则放入缓存桶
     if (childParentData.keepAlive) {
       assert(!childParentData._keptAlive);
       remove(index);
@@ -239,13 +262,12 @@ abstract class RenderSliverVariableSizeBoxAdaptor extends RenderSliver
     _createOrObtainChild(index);
     final child = this[index];
     if (child != null) {
-      try {
-        assert(indexOf(child) == index);
-        child.layout(childConstraints, parentUsesSize: parentUsesSize);
-        return child;
-      } on Exception catch (err) {
-        debugPrint('$err, addAndLayoutChild: 这不是错误。');
-      }
+      // [优化]: 移除了原始代码中的 try-catch 块。
+      // 捕获异常并打印 "This not Error" 是不好的做法，会掩盖真正的布局错误。
+      // 如果 child.layout 抛出异常，应该让它向上冒泡，以便开发者修复问题。
+      assert(indexOf(child) == index);
+      child.layout(childConstraints, parentUsesSize: parentUsesSize);
+      return child;
     }
     childManager.setDidUnderflow(true);
     return null;
@@ -262,8 +284,6 @@ abstract class RenderSliverVariableSizeBoxAdaptor extends RenderSliver
     assert(childCount >= visibleIndices.length);
     invokeLayoutCallback<SliverConstraints>((SliverConstraints constraints) {
       // 我们只销毁那些不可见的。
-      // [修复说明]: 现在由于 Element 不再强制 keepAlive=true，
-      // 这里的 _destroyOrCacheChild 将正确地销毁那些没有被 AutomaticKeepAlive 保护的子项。
       indices.toSet().difference(visibleIndices).forEach(_destroyOrCacheChild);
 
       // 要求子管理器移除不再保持存活的子项。
@@ -274,6 +294,8 @@ abstract class RenderSliverVariableSizeBoxAdaptor extends RenderSliver
           })
           .toList()
           .forEach(_childManager.removeChild);
+
+      // 断言确保缓存桶中剩余的都是需要 keepAlive 的。
       assert(_keepAliveBucket.values.where((RenderBox child) {
         final childParentData = child.parentData! as SliverVariableSizeBoxAdaptorParentData;
         return !childParentData.keepAlive;
@@ -302,7 +324,7 @@ abstract class RenderSliverVariableSizeBoxAdaptor extends RenderSliver
 
   @override
   bool hitTestChildren(HitTestResult result, {required double mainAxisPosition, required double crossAxisPosition}) {
-    for (final child in children) {
+    for (final child in children.toList().reversed) {
       if (hitTestBoxChild(BoxHitTestResult.wrap(result), child,
           mainAxisPosition: mainAxisPosition, crossAxisPosition: crossAxisPosition)) {
         return true;
@@ -313,12 +335,8 @@ abstract class RenderSliverVariableSizeBoxAdaptor extends RenderSliver
 
   @override
   double childMainAxisPosition(RenderBox child) {
-    try {
-      return childScrollOffset(child)! - (constraints.scrollOffset);
-    } on Exception catch (err) {
-      debugPrint('$err, childMainAxisPosition: 这不是错误。');
-      return 0.0;
-    }
+    // [优化]: 移除了这里的 try-catch。如果有异常，说明 layoutOffset 为空，这是程序错误，不应被掩盖。
+    return childScrollOffset(child)! - (constraints.scrollOffset);
   }
 
   @override
@@ -346,6 +364,7 @@ abstract class RenderSliverVariableSizeBoxAdaptor extends RenderSliver
       return;
     }
     // offset 指向左上角，无论我们的轴方向如何。
+    // originOffset 提供了从真实原点到轴方向原点的增量。
     Offset? mainAxisUnit, crossAxisUnit, originOffset;
     bool? addExtent;
     switch (applyGrowthDirectionToAxisDirection(constraints.axisDirection, constraints.growthDirection)) {
