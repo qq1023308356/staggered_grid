@@ -7,26 +7,27 @@ import 'package:staggered_grid/src/rendering/sliver_variable_size_box_adaptor.da
 import 'package:staggered_grid/src/widgets/staggered_tile.dart';
 
 abstract class SliverVariableSizeBoxAdaptorWidget extends SliverWithKeepAliveWidget {
-  /// Initializes fields for subclasses.
+  /// 初始化子类字段。
   const SliverVariableSizeBoxAdaptorWidget({
     super.key,
     required this.delegate,
     this.addAutomaticKeepAlives = true,
   });
 
-  /// Whether to add keepAlives to children
+  /// 是否为子组件添加自动保持存活（AutomaticKeepAlives）功能。
+  ///
+  /// 如果为 true，则会自动包裹 AutomaticKeepAlive。
+  /// 注意：这并不意味着所有子项都会被永久保持，只有那些请求了 KeepAlive 的子项才会被保持。
   final bool addAutomaticKeepAlives;
 
-  /// The delegate that provides the children for this widget.
+  /// 提供此 Widget 子项的代理。
   ///
-  /// The children are constructed lazily using this widget to avoid creating
-  /// more children than are visible through the [Viewport].
+  /// 使用此 Widget 懒加载构建子项，以避免创建比通过 [Viewport] 可见部分更多的子项。
   ///
-  /// See also:
+  /// 参见:
   ///
-  ///  * [SliverChildBuilderDelegate] and [SliverChildListDelegate], which are
-  ///    commonly used subclasses of [SliverChildDelegate] that use a builder
-  ///    callback and an explicit child list, respectively.
+  ///  * [SliverChildBuilderDelegate] 和 [SliverChildListDelegate]，
+  ///    它们是 [SliverChildDelegate] 的常用子类，分别使用构建器回调和显式子列表。
   final SliverChildDelegate delegate;
 
   @override
@@ -38,16 +39,13 @@ abstract class SliverVariableSizeBoxAdaptorWidget extends SliverWithKeepAliveWid
   @override
   RenderSliverVariableSizeBoxAdaptor createRenderObject(BuildContext context);
 
-  /// Returns an estimate of the max scroll extent for all the children.
+  /// 返回所有子项的最大滚动范围估计值。
   ///
-  /// Subclasses should override this function if they have additional
-  /// information about their max scroll extent.
+  /// 如果子类有关于其最大滚动范围的额外信息，应该重写此函数。
   ///
-  /// This is used by [SliverMultiBoxAdaptorElement] to implement part of the
-  /// [RenderSliverBoxChildManager] API.
+  /// 这被 [SliverMultiBoxAdaptorElement] 用于实现 [RenderSliverBoxChildManager] API 的一部分。
   ///
-  /// The default implementation defers to [delegate] via its
-  /// [SliverChildDelegate.estimateMaxScrollOffset] method.
+  /// 默认实现是通过其 [SliverChildDelegate.estimateMaxScrollOffset] 方法委托给 [delegate]。
   double? estimateMaxScrollOffset(
     SliverConstraints constraints,
     int firstIndex,
@@ -75,11 +73,11 @@ abstract class SliverVariableSizeBoxAdaptorWidget extends SliverWithKeepAliveWid
 
 class SliverVariableSizeBoxAdaptorElement extends RenderObjectElement
     implements RenderSliverVariableSizeBoxChildManager {
-  /// Creates an element that lazily builds children for the given widget.
+  /// 创建一个懒加载构建子项的 Element。
   SliverVariableSizeBoxAdaptorElement(SliverVariableSizeBoxAdaptorWidget super.widget,
       {this.addAutomaticKeepAlives = true});
 
-  /// Whether to add keepAlives to children
+  /// 是否为子组件添加自动保持存活功能。
   final bool addAutomaticKeepAlives;
 
   @override
@@ -100,19 +98,19 @@ class SliverVariableSizeBoxAdaptorElement extends RenderObjectElement
     }
   }
 
-  // We inflate widgets at two different times:
-  //  1. When we ourselves are told to rebuild (see performRebuild).
-  //  2. When our render object needs a child (see createChild).
-  // In both cases, we cache the results of calling into our delegate to get the widget,
-  // so that if we do case 2 later, we don't call the builder again.
-  // Any time we do case 1, though, we reset the cache.
+  // 我们在两个不同的时间点 inflate (挂载) widgets：
+  //  1. 当我们自己被告知需要重建时（见 performRebuild）。
+  //  2. 当我们的 render object 需要一个子项时（见 createChild）。
+  // 在这两种情况下，我们都会缓存调用 delegate 获取 widget 的结果，
+  // 这样如果稍后执行情况 2，我们就不必再次调用 builder。
+  // 但是，任何时候我们执行情况 1，我们都会重置缓存。
 
   final Map<int, Widget?> _childWidgets = HashMap<int, Widget?>();
   final SplayTreeMap<int, Element> _childElements = SplayTreeMap<int, Element>();
 
   @override
   void performRebuild() {
-    _childWidgets.clear(); // Reset the cache, as described above.
+    _childWidgets.clear(); // 如上所述，重置缓存。
     super.performRebuild();
     assert(_currentlyUpdatingChildIndex == null);
     try {
@@ -172,12 +170,7 @@ class SliverVariableSizeBoxAdaptorElement extends RenderObjectElement
     final Element? newChild = super.updateChild(child, newWidget, newSlot);
     final newParentData = newChild?.renderObject?.parentData as SliverVariableSizeBoxAdaptorParentData?;
 
-    // set keepAlive to true in order to populate the cache
-    if (addAutomaticKeepAlives && newParentData != null) {
-      newParentData.keepAlive = true;
-    }
-
-    // Preserve the old layoutOffset if the renderObject was swapped out.
+    // 如果 renderObject 被交换出去，保留旧的 layoutOffset。
     if (oldParentData != newParentData && oldParentData != null && newParentData != null) {
       newParentData.layoutOffset = oldParentData.layoutOffset;
     }
@@ -324,8 +317,7 @@ class SliverVariableSizeBoxAdaptorElement extends RenderObjectElement
 
   @override
   void visitChildren(ElementVisitor visitor) {
-    // The toList() is to make a copy so that the underlying list can be modified by
-    // the visitor:
+    // 使用 toList() 创建副本，以便访问者可以修改底层列表：
     _childElements.values.toList().forEach(visitor);
   }
 
@@ -351,8 +343,7 @@ class SliverVariableSizeBoxAdaptorElement extends RenderObjectElement
 }
 
 class SliverStaggeredGrid extends SliverVariableSizeBoxAdaptorWidget {
-  /// Creates a sliver that places multiple box children in a two dimensional
-  /// arrangement.
+  /// 创建一个 Sliver，将多个盒状子项放置在二维排列中。
   const SliverStaggeredGrid({
     super.key,
     required super.delegate,
@@ -360,18 +351,7 @@ class SliverStaggeredGrid extends SliverVariableSizeBoxAdaptorWidget {
     super.addAutomaticKeepAlives,
   });
 
-  /// Creates a sliver that places multiple box children in a two dimensional
-  /// arrangement with a fixed number of tiles in the cross axis.
-  ///
-  /// Uses a [SliverStaggeredGridDelegateWithFixedCrossAxisCount] as the [gridDelegate],
-  /// and a [SliverVariableSizeChildListDelegate] as the [delegate].
-  ///
-  /// The `addAutomaticKeepAlives` argument corresponds to the
-  //  [SliverVariableSizeChildListDelegate.addAutomaticKeepAlives] property. The
-  ///
-  /// See also:
-  ///
-  ///  * [StaggeredGridView.count], the equivalent constructor for [StaggeredGridView] widgets.
+  /// 创建一个 Sliver，将多个盒状子项放置在具有固定交叉轴 tile 数量的二维排列中。
   SliverStaggeredGrid.count({
     super.key,
     required int crossAxisCount,
@@ -394,20 +374,7 @@ class SliverStaggeredGrid extends SliverVariableSizeBoxAdaptorWidget {
           ),
         );
 
-  /// Creates a sliver that builds multiple box children in a two dimensional
-  /// arrangement with a fixed number of tiles in the cross axis.
-  ///
-  /// This constructor is appropriate for grid views with a large (or infinite)
-  /// number of children because the builder is called only for those children
-  /// that are actually visible.
-  ///
-  /// Uses a [SliverStaggeredGridDelegateWithFixedCrossAxisCount] as the
-  /// [gridDelegate], and a [SliverVariableSizeChildBuilderDelegate] as the [delegate].
-  ///
-  /// See also:
-  ///
-  ///  * [StaggeredGridView.countBuilder], the equivalent constructor for
-  ///  [StaggeredGridView] widgets.
+  /// 创建一个 Sliver，构建具有固定交叉轴 tile 数量的二维排列的多个盒状子项。
   SliverStaggeredGrid.countBuilder({
     super.key,
     required int crossAxisCount,
@@ -432,15 +399,7 @@ class SliverStaggeredGrid extends SliverVariableSizeBoxAdaptorWidget {
           ),
         );
 
-  /// Creates a sliver that places multiple box children in a two dimensional
-  /// arrangement with tiles that each have a maximum cross-axis extent.
-  ///
-  /// Uses a [SliverStaggeredGridDelegateWithMaxCrossAxisExtent] as the [gridDelegate],
-  /// and a [SliverVariableSizeChildListDelegate] as the [delegate].
-  ///
-  /// See also:
-  ///
-  ///  * [StaggeredGridView.extent], the equivalent constructor for [StaggeredGridView] widgets.
+  /// 创建一个 Sliver，将多个盒状子项放置在二维排列中，每个 tile 都有最大交叉轴范围。
   SliverStaggeredGrid.extent({
     super.key,
     required double maxCrossAxisExtent,
@@ -463,20 +422,7 @@ class SliverStaggeredGrid extends SliverVariableSizeBoxAdaptorWidget {
           ),
         );
 
-  /// Creates a sliver that builds multiple box children in a two dimensional
-  /// arrangement with tiles that each have a maximum cross-axis extent.
-  ///
-  /// This constructor is appropriate for grid views with a large (or infinite)
-  /// number of children because the builder is called only for those children
-  /// that are actually visible.
-  ///
-  /// Uses a [SliverStaggeredGridDelegateWithMaxCrossAxisExtent] as the
-  /// [gridDelegate], and a [SliverVariableSizeChildBuilderDelegate] as the [delegate].
-  ///
-  /// See also:
-  ///
-  ///  * [StaggeredGridView.extentBuilder], the equivalent constructor for
-  ///  [StaggeredGridView] widgets.
+  /// 创建一个 Sliver，构建具有每个 tile 都有最大交叉轴范围的二维排列的多个盒状子项。
   SliverStaggeredGrid.extentBuilder({
     super.key,
     required double maxCrossAxisExtent,
@@ -501,7 +447,7 @@ class SliverStaggeredGrid extends SliverVariableSizeBoxAdaptorWidget {
           ),
         );
 
-  /// The delegate that controls the size and position of the children.
+  /// 控制子项大小和位置的代理。
   final SliverStaggeredGridDelegate gridDelegate;
 
   @override

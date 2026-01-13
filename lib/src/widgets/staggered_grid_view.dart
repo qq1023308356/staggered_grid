@@ -24,25 +24,23 @@ class StaggeredGridView extends BoxScrollView {
           addRepaintBoundaries: addRepaintBoundaries,
         );
 
-  /// Creates a scrollable, 2D array of widgets that are created on demand.
+  /// 创建一个可滚动的、按需创建的二维 Widget 数组。
   ///
-  /// This constructor is appropriate for grid views with a large (or infinite)
-  /// number of children because the builder is called only for those children
-  /// that are actually visible.
+  /// 此构造函数适用于具有大量（或无限）子项的网格视图，
+  /// 因为仅对实际可见的那些子项调用构建器。
   ///
-  /// Providing a non-null [itemCount] improves the ability of the
-  /// [SliverStaggeredGridDelegate] to estimate the maximum scroll extent.
+  /// 提供非空的 [itemCount] 可以提高 [SliverStaggeredGridDelegate]
+  /// 估计最大滚动范围的能力。
   ///
-  /// [itemBuilder] will be called only with indices greater than or equal to
-  /// zero and less than [itemCount].
+  /// [itemBuilder] 仅在索引大于或等于零且小于 [itemCount] 时被调用。
   ///
-  /// The [gridDelegate] argument must not be null.
+  /// [gridDelegate] 参数不能为空。
   ///
-  /// The `addAutomaticKeepAlives` argument corresponds to the
-  /// [SliverVariableSizeChildBuilderDelegate.addAutomaticKeepAlives] property. The
-  /// `addRepaintBoundaries` argument corresponds to the
-  /// [SliverVariableSizeChildBuilderDelegate.addRepaintBoundaries] property. Both must not
-  /// be null.
+  /// `addAutomaticKeepAlives` 参数对应于
+  /// [SliverVariableSizeChildBuilderDelegate.addAutomaticKeepAlives] 属性。
+  /// `addRepaintBoundaries` 参数对应于
+  /// [SliverVariableSizeChildBuilderDelegate.addRepaintBoundaries] 属性。
+  /// 两者都不能为 null。
   StaggeredGridView.builder({
     super.key,
     super.scrollDirection,
@@ -65,14 +63,14 @@ class StaggeredGridView extends BoxScrollView {
           addRepaintBoundaries: addRepaintBoundaries,
         );
 
-  /// Creates a scrollable, 2D array of widgets with both a custom
-  /// [SliverStaggeredGridDelegate] and a custom [SliverVariableSizeChildDelegate].
+  /// 创建一个可滚动的二维 Widget 数组，同时使用自定义的
+  /// [SliverStaggeredGridDelegate] 和 [SliverVariableSizeChildDelegate]。
   ///
-  /// To use an [IndexedWidgetBuilder] callback to build children, either use
-  /// a [SliverVariableSizeChildBuilderDelegate] or use the
-  /// [SliverStaggeredGridDelegate.builder] constructor.
+  /// 要使用 [IndexedWidgetBuilder] 回调构建子项，请使用
+  /// [SliverVariableSizeChildBuilderDelegate] 或使用
+  /// [SliverStaggeredGridDelegate.builder] 构造函数。
   ///
-  /// The [gridDelegate] and [childrenDelegate] arguments must not be null.
+  /// [gridDelegate] 和 [childrenDelegate] 参数不能为空。
   const StaggeredGridView.custom({
     super.key,
     super.scrollDirection,
@@ -88,21 +86,19 @@ class StaggeredGridView extends BoxScrollView {
     this.addAutomaticKeepAlives = true,
   });
 
-  /// Creates a scrollable, 2D array of widgets of variable sizes with a fixed
-  /// number of tiles in the cross axis.
+  /// 创建一个可滚动的、具有固定交叉轴 tile 数量的可变大小 Widget 的二维数组。
   ///
-  /// Uses a [SliverStaggeredGridDelegateWithFixedCrossAxisCount] as the
-  /// [gridDelegate].
+  /// 使用 [SliverStaggeredGridDelegateWithFixedCrossAxisCount] 作为 [gridDelegate]。
   ///
-  /// The `addAutomaticKeepAlives` argument corresponds to the
-  /// [SliverVariableSizeChildListDelegate.addAutomaticKeepAlives] property. The
-  /// `addRepaintBoundaries` argument corresponds to the
-  /// [SliverVariableSizeChildListDelegate.addRepaintBoundaries] property. Both must not be
-  /// null.
+  /// `addAutomaticKeepAlives` 参数对应于
+  /// [SliverVariableSizeChildListDelegate.addAutomaticKeepAlives] 属性。
+  /// `addRepaintBoundaries` 参数对应于
+  /// [SliverVariableSizeChildListDelegate.addRepaintBoundaries] 属性。
+  /// 两者都不能为 null。
   ///
-  /// See also:
+  /// 参见:
   ///
-  ///  * [SliverGrid.count], the equivalent constructor for [SliverGrid].
+  ///  * [SliverGrid.count]，[SliverGrid] 的等效构造函数。
   StaggeredGridView.count({
     super.key,
     super.scrollDirection,
@@ -133,28 +129,23 @@ class StaggeredGridView extends BoxScrollView {
           addRepaintBoundaries: addRepaintBoundaries,
         );
 
-  /// Creates a scrollable, 2D array of widgets of variable sizes with a fixed
-  /// number of tiles in the cross axis that are created on demand.
+  /// 创建一个可滚动的、具有固定交叉轴 tile 数量的、按需创建的可变大小 Widget 的二维数组。
   ///
-  /// This constructor is appropriate for grid views with a large (or infinite)
-  /// number of children because the builder is called only for those children
-  /// that are actually visible.
+  /// 此构造函数适用于具有大量（或无限）子项的网格视图，
+  /// 因为仅对实际可见的那些子项调用构建器。
   ///
-  /// Uses a [SliverStaggeredGridDelegateWithFixedCrossAxisCount] as the
-  /// [gridDelegate].
+  /// 使用 [SliverStaggeredGridDelegateWithFixedCrossAxisCount] 作为 [gridDelegate]。
   ///
-  ///  Providing a non-null [itemCount] improves the ability of the
-  /// [SliverStaggeredGridDelegate] to estimate the maximum scroll extent.
+  /// 提供非空的 [itemCount] 可以提高 [SliverStaggeredGridDelegate]
+  /// 估计最大滚动范围的能力。
   ///
-  /// [itemBuilder] and [staggeredTileBuilder] will be called only with
-  /// indices greater than or equal to
-  /// zero and less than [itemCount].
+  /// [itemBuilder] 和 [staggeredTileBuilder] 仅在索引大于或等于零且小于 [itemCount] 时被调用。
   ///
-  /// The `addAutomaticKeepAlives` argument corresponds to the
-  /// [SliverVariableSizeChildListDelegate.addAutomaticKeepAlives] property. The
-  /// `addRepaintBoundaries` argument corresponds to the
-  /// [SliverVariableSizeChildListDelegate.addRepaintBoundaries] property. Both must not be
-  /// null.
+  /// `addAutomaticKeepAlives` 参数对应于
+  /// [SliverVariableSizeChildListDelegate.addAutomaticKeepAlives] 属性。
+  /// `addRepaintBoundaries` 参数对应于
+  /// [SliverVariableSizeChildListDelegate.addRepaintBoundaries] 属性。
+  /// 两者都不能为 null。
   StaggeredGridView.countBuilder({
     super.key,
     super.scrollDirection,
@@ -187,27 +178,24 @@ class StaggeredGridView extends BoxScrollView {
           addRepaintBoundaries: addRepaintBoundaries,
         );
 
-  /// Creates a scrollable, 2D array of widgets of variable sizes with tiles
-  /// that  each have a maximum cross-axis extent.
+  /// 创建一个可滚动的、具有每个 tile 都有最大交叉轴范围的可变大小 Widget 的二维数组。
   ///
-  /// Uses a [SliverGridDelegateWithMaxCrossAxisExtent] as the [gridDelegate].
+  /// 使用 [SliverGridDelegateWithMaxCrossAxisExtent] 作为 [gridDelegate]。
   ///
-  ///  Providing a non-null [itemCount] improves the ability of the
-  /// [SliverStaggeredGridDelegate] to estimate the maximum scroll extent.
+  /// 提供非空的 [itemCount] 可以提高 [SliverStaggeredGridDelegate]
+  /// 估计最大滚动范围的能力。
   ///
-  /// [itemBuilder] and [staggeredTileBuilder] will be called only with
-  /// indices greater than or equal to
-  /// zero and less than [itemCount].
+  /// [itemBuilder] 和 [staggeredTileBuilder] 仅在索引大于或等于零且小于 [itemCount] 时被调用。
   ///
-  /// The `addAutomaticKeepAlives` argument corresponds to the
-  /// [SliverVariableSizeChildListDelegate.addAutomaticKeepAlives] property. The
-  /// `addRepaintBoundaries` argument corresponds to the
-  /// [SliverVariableSizeChildListDelegate.addRepaintBoundaries] property. Both must not be
-  /// null.
+  /// `addAutomaticKeepAlives` 参数对应于
+  /// [SliverVariableSizeChildListDelegate.addAutomaticKeepAlives] 属性。
+  /// `addRepaintBoundaries` 参数对应于
+  /// [SliverVariableSizeChildListDelegate.addRepaintBoundaries] 属性。
+  /// 两者都不能为 null。
   ///
-  /// See also:
+  /// 参见:
   ///
-  ///  * [SliverGrid.extent], the equivalent constructor for [SliverGrid].
+  ///  * [SliverGrid.extent]，[SliverGrid] 的等效构造函数。
   StaggeredGridView.extent({
     super.key,
     super.scrollDirection,
@@ -238,24 +226,22 @@ class StaggeredGridView extends BoxScrollView {
           addRepaintBoundaries: addRepaintBoundaries,
         );
 
-  /// Creates a scrollable, 2D array of widgets of variable sizes with tiles
-  /// that  each have a maximum cross-axis extent that are created on demand.
+  /// 创建一个可滚动的、具有每个 tile 都有最大交叉轴范围的、按需创建的可变大小 Widget 的二维数组。
   ///
-  /// This constructor is appropriate for grid views with a large (or infinite)
-  /// number of children because the builder is called only for those children
-  /// that are actually visible.
+  /// 此构造函数适用于具有大量（或无限）子项的网格视图，
+  /// 因为仅对实际可见的那些子项调用构建器。
   ///
-  /// Uses a [SliverGridDelegateWithMaxCrossAxisExtent] as the [gridDelegate].
+  /// 使用 [SliverGridDelegateWithMaxCrossAxisExtent] 作为 [gridDelegate]。
   ///
-  /// The `addAutomaticKeepAlives` argument corresponds to the
-  /// [SliverVariableSizeChildListDelegate.addAutomaticKeepAlives] property. The
-  /// `addRepaintBoundaries` argument corresponds to the
-  /// [SliverVariableSizeChildListDelegate.addRepaintBoundaries] property. Both must not be
-  /// null.
+  /// `addAutomaticKeepAlives` 参数对应于
+  /// [SliverVariableSizeChildListDelegate.addAutomaticKeepAlives] 属性。
+  /// `addRepaintBoundaries` 参数对应于
+  /// [SliverVariableSizeChildListDelegate.addRepaintBoundaries] 属性。
+  /// 两者都不能为 null。
   ///
-  /// See also:
+  /// 参见:
   ///
-  ///  * [SliverGrid.extent], the equivalent constructor for [SliverGrid].
+  ///  * [SliverGrid.extent]，[SliverGrid] 的等效构造函数。
   StaggeredGridView.extentBuilder({
     super.key,
     super.scrollDirection,
@@ -288,22 +274,19 @@ class StaggeredGridView extends BoxScrollView {
           addRepaintBoundaries: addRepaintBoundaries,
         );
 
-  /// A delegate that controls the layout of the children within the
-  /// [StaggeredGridView].
+  /// 控制 [StaggeredGridView] 中子项布局的代理。
   ///
-  /// The [StaggeredGridView] and [StaggeredGridView.custom] constructors let you specify this
-  /// delegate explicitly. The other constructors create a [gridDelegate]
-  /// implicitly.
+  /// [StaggeredGridView] 和 [StaggeredGridView.custom] 构造函数允许你明确指定此代理。
+  /// 其他构造函数隐式创建 [gridDelegate]。
   final SliverStaggeredGridDelegate gridDelegate;
 
-  /// A delegate that provides the children for the [StaggeredGridView].
+  /// 为 [StaggeredGridView] 提供子项的代理。
   ///
-  /// The [StaggeredGridView.custom] constructor lets you specify this delegate
-  /// explicitly. The other constructors create a [childrenDelegate] that wraps
-  /// the given child list.
+  /// [StaggeredGridView.custom] 构造函数允许你明确指定此代理。
+  /// 其他构造函数创建一个包装给定子列表的 [childrenDelegate]。
   final SliverChildDelegate childrenDelegate;
 
-  /// Whether to add keepAlives to children
+  /// 是否为子项添加保持存活功能
   final bool addAutomaticKeepAlives;
 
   @override

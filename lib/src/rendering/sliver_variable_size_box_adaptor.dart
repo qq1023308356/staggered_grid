@@ -2,59 +2,34 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/rendering.dart';
 import 'package:staggered_grid/src/rendering/tile_container_render_object_mixin.dart';
 
-/// A delegate used by [RenderSliverVariableSizeBoxAdaptor] to manage its children.
+/// [RenderSliverVariableSizeBoxAdaptor] 使用的代理，用于管理其子项。
 ///
-/// [RenderSliverVariableSizeBoxAdaptor] objects reify their children lazily to avoid
-/// spending resources on children that are not visible in the viewport. This
-/// delegate lets these objects create and remove children as well as estimate
-/// the total scroll offset extent occupied by the full child list.
+/// [RenderSliverVariableSizeBoxAdaptor] 对象会懒加载其实例化子项，以避免在视口不可见的子项上浪费资源。
+/// 此代理允许这些对象创建和移除子项，并估计完整子列表占用的总滚动偏移范围。
 abstract class RenderSliverVariableSizeBoxChildManager {
-  /// Called during layout when a new child is needed. The child should be
-  /// inserted into the child list in the appropriate position. Its index and
-  /// scroll offsets will automatically be set appropriately.
+  /// 在布局期间需要新子项时调用。子项应插入到子项列表的适当位置。
+  /// 其索引和滚动偏移将自动被适当地设置。
   ///
-  /// The `index` argument gives the index of the child to show. It is possible
-  /// for negative indices to be requested. For example: if the user scrolls
-  /// from child 0 to child 10, and then those children get much smaller, and
-  /// then the user scrolls back up again, this method will eventually be asked
-  /// to produce a child for index -1.
+  /// `index` 参数给出了要显示的子项的索引。可能会请求负索引。
   ///
-  /// If no child corresponds to `index`, then do nothing.
+  /// 如果没有对应 `index` 的子项，则不执行任何操作。
   ///
-  /// Which child is indicated by index zero depends on the [GrowthDirection]
-  /// specified in the [RenderSliverVariableSizeBoxAdaptor.constraints]. For example
-  /// if the children are the alphabet, then if
-  /// [SliverConstraints.growthDirection] is [GrowthDirection.forward] then
-  /// index zero is A, and index 25 is Z. On the other hand if
-  /// [SliverConstraints.growthDirection] is [GrowthDirection.reverse]
-  /// then index zero is Z, and index 25 is A.
+  /// [RenderSliverVariableSizeBoxAdaptor] 对象在此帧期间未创建且未更新的其他子项，
+  /// 在调用 [createChild] 期间可以被移除。向此渲染对象添加任何其他子项是无效的。
   ///
-  /// During a call to [createChild] it is valid to remove other children from
-  /// the [RenderSliverVariableSizeBoxAdaptor] object if they were not created during
-  /// this frame and have not yet been updated during this frame. It is not
-  /// valid to add any other children to this render object.
-  ///
-  /// If this method does not create a child for a given `index` greater than or
-  /// equal to zero, then [computeMaxScrollOffset] must be able to return a
-  /// precise value.
+  /// 如果此方法没有为大于或等于零的给定 `index` 创建子项，
+  /// 那么 [computeMaxScrollOffset] 必须能够返回一个精确值。
   void createChild(int index);
 
-  /// Remove the given child from the child list.
+  /// 从子列表中移除给定的子项。
   ///
-  /// Called by [RenderSliverVariableSizeBoxAdaptor.collectGarbage], which itself is
-  /// called from [RenderSliverVariableSizeBoxAdaptor.performLayout].
-  ///
-  /// The index of the given child can be obtained using the
-  /// [RenderSliverVariableSizeBoxAdaptor.indexOf] method, which reads it from the
-  /// [SliverVariableSizeBoxAdaptorParentData.index] field of the child's
-  /// [RenderObject.parentData].
+  /// 由 [RenderSliverVariableSizeBoxAdaptor.collectGarbage] 调用，
+  /// 而后者又由 [RenderSliverVariableSizeBoxAdaptor.performLayout] 调用。
   void removeChild(RenderBox child);
 
-  /// Called to estimate the total scrollable extents of this object.
+  /// 调用以估计此对象的总可滚动范围。
   ///
-  /// Must return the total distance from the start of the child with the
-  /// earliest possible index to the end of the child with the last possible
-  /// index.
+  /// 必须返回从具有最早可能索引的子项开始到具有最后可能索引的子项结束的总距离。
   double estimateMaxScrollOffset(
     SliverConstraints constraints, {
     int? firstIndex,
@@ -63,108 +38,64 @@ abstract class RenderSliverVariableSizeBoxChildManager {
     double? trailingScrollOffset,
   });
 
-  /// Called to obtain a precise measure of the total number of children.
+  /// 调用以获取子项总数的精确度量。
   ///
-  /// Must return the number that is one greater than the greatest `index` for
-  /// which `createChild` will actually create a child.
-  ///
-  /// This is used when [createChild] cannot add a child for a positive `index`,
-  /// to determine the precise dimensions of the sliver. It must return an
-  /// accurate and precise non-null value. It will not be called if
-  /// [createChild] is always able to create a child (e.g. for an infinite
-  /// list).
+  /// 必须返回比 `createChild` 实际创建子项的最大 `index` 大一的数字。
   int get childCount;
 
-  /// Called during [RenderSliverVariableSizeBoxAdaptor.adoptChild].
+  /// 在 [RenderSliverVariableSizeBoxAdaptor.adoptChild] 期间调用。
   ///
-  /// Subclasses must ensure that the [SliverVariableSizeBoxAdaptorParentData.index]
-  /// field of the child's [RenderObject.parentData] accurately reflects the
-  /// child's index in the child list after this function returns.
+  /// 子类必须确保在此函数返回后，子项 [RenderObject.parentData] 的
+  /// [SliverVariableSizeBoxAdaptorParentData.index] 字段准确反映了子项在子列表中的索引。
   void didAdoptChild(RenderBox child);
 
-  /// Called during layout to indicate whether this object provided insufficient
-  /// children for the [RenderSliverVariableSizeBoxAdaptor] to fill the
-  /// [SliverConstraints.remainingPaintExtent].
-  ///
-  /// Typically called unconditionally at the start of layout with false and
-  /// then later called with true when the [RenderSliverVariableSizeBoxAdaptor]
-  /// fails to create a child required to fill the
-  /// [SliverConstraints.remainingPaintExtent].
-  ///
-  /// Useful for subclasses to determine whether newly added children could
-  /// affect the visible contents of the [RenderSliverVariableSizeBoxAdaptor].
+  /// 在布局期间调用，指示此对象提供的子项是否不足以填充
+  /// [RenderSliverVariableSizeBoxAdaptor] 的 [SliverConstraints.remainingPaintExtent]。
   // ignore: avoid_positional_boolean_parameters
   void setDidUnderflow(bool value);
 
-  /// Called at the beginning of layout to indicate that layout is about to
-  /// occur.
+  /// 在布局开始时调用，指示布局即将发生。
   void didStartLayout() {}
 
-  /// Called at the end of layout to indicate that layout is now complete.
+  /// 在布局结束时调用，指示布局现已完成。
   void didFinishLayout() {}
 
-  /// In debug mode, asserts that this manager is not expecting any
-  /// modifications to the [RenderSliverVariableSizeBoxAdaptor]'s child list.
+  /// 在调试模式下，断言此管理器不期望对 [RenderSliverVariableSizeBoxAdaptor] 的子列表进行任何修改。
   ///
-  /// This function always returns true.
-  ///
-  /// The manager is not required to track whether it is expecting modifications
-  /// to the [RenderSliverVariableSizeBoxAdaptor]'s child list and can simply return
-  /// true without making any assertions.
+  /// 此函数始终返回 true。
   bool debugAssertChildListLocked() => true;
 }
 
-/// Parent data structure used by [RenderSliverVariableSizeBoxAdaptor].
+/// [RenderSliverVariableSizeBoxAdaptor] 使用的 Parent Data 结构。
 class SliverVariableSizeBoxAdaptorParentData extends SliverMultiBoxAdaptorParentData {
-  /// The offset of the child in the non-scrolling axis.
+  /// 子项在非滚动轴上的偏移。
   ///
-  /// If the scroll axis is vertical, this offset is from the left-most edge of
-  /// the parent to the left-most edge of the child. If the scroll axis is
-  /// horizontal, this offset is from the top-most edge of the parent to the
-  /// top-most edge of the child.
+  /// 如果滚动轴是垂直的，则此偏移是从父级最左边缘到子级最左边缘。
+  /// 如果滚动轴是水平的，则此偏移是从父级最上边缘到子级最上边缘。
   late double crossAxisOffset;
 
-  /// Whether the widget is currently in the
-  /// [RenderSliverVariableSizeBoxAdaptor._keepAliveBucket].
+  /// 该 Widget 当前是否在 [RenderSliverVariableSizeBoxAdaptor._keepAliveBucket] 中。
   bool _keptAlive = false;
 
   @override
   String toString() => 'crossAxisOffset=$crossAxisOffset; ${super.toString()}';
 }
 
-/// A sliver with multiple variable size box children.
+/// 具有多个可变大小盒状子项的 Sliver。
 ///
-/// [RenderSliverVariableSizeBoxAdaptor] is a base class for slivers that have multiple
-/// variable size box children. The children are managed by a [RenderSliverBoxChildManager],
-/// which lets subclasses create children lazily during layout. Typically
-/// subclasses will create only those children that are actually needed to fill
-/// the [SliverConstraints.remainingPaintExtent].
+/// [RenderSliverVariableSizeBoxAdaptor] 是具有多个可变大小盒状子项的 Sliver 的基类。
+/// 子项由 [RenderSliverVariableSizeBoxChildManager] 管理，它允许子类在布局期间懒加载创建子项。
+/// 通常，子类只会创建填充 [SliverConstraints.remainingPaintExtent] 所需的那些子项。
 ///
-/// The contract for adding and removing children from this render object is
-/// more strict than for normal render objects:
-///
-/// * Children can be removed except during a layout pass if they have already
-///   been laid out during that layout pass.
-/// * Children cannot be added except during a call to [childManager], and
-///   then only if there is no child corresponding to that index (or the child
-///   child corresponding to that index was first removed).
-///
-/// See also:
-///
-///  * [RenderSliverToBoxAdapter], which has a single box child.
-///  * [RenderSliverList], which places its children in a linear
-///    array.
-///  * [RenderSliverFixedExtentList], which places its children in a linear
-///    array with a fixed extent in the main axis.
-///  * [RenderSliverGrid], which places its children in arbitrary positions.
+/// 从此渲染对象添加和移除子项的契约比普通渲染对象更严格。
 abstract class RenderSliverVariableSizeBoxAdaptor extends RenderSliver
     with
         TileContainerRenderObjectMixin<RenderBox, SliverVariableSizeBoxAdaptorParentData>,
         RenderSliverWithKeepAliveMixin,
         RenderSliverHelpers {
-  /// Creates a sliver with multiple box children.
+  /// 创建具有多个盒状子项的 Sliver。
   ///
-  /// The [childManager] argument must not be null.
+  /// [childManager] 参数不能为空。
   RenderSliverVariableSizeBoxAdaptor({required RenderSliverVariableSizeBoxChildManager childManager})
       : _childManager = childManager;
 
@@ -175,17 +106,12 @@ abstract class RenderSliverVariableSizeBoxAdaptor extends RenderSliver
     }
   }
 
-  /// The delegate that manages the children of this object.
-  ///
-  /// Rather than having a concrete list of children, a
-  /// [RenderSliverVariableSizeBoxAdaptor] uses a [RenderSliverVariableSizeBoxChildManager] to
-  /// create children during layout in order to fill the
-  /// [SliverConstraints.remainingPaintExtent].
+  /// 管理此对象子项的代理。
   @protected
   RenderSliverVariableSizeBoxChildManager get childManager => _childManager;
   final RenderSliverVariableSizeBoxChildManager _childManager;
 
-  /// The nodes being kept alive despite not being visible.
+  /// 尽管不可见但仍保持存活的节点。
   final Map<int, RenderBox> _keepAliveBucket = <int, RenderBox>{};
 
   @override
@@ -203,7 +129,7 @@ abstract class RenderSliverVariableSizeBoxAdaptor extends RenderSliver
   void remove(int index) {
     final RenderBox? child = this[index];
 
-    // if child is null, it means this element was cached - drop the cached element
+    // 如果 child 为 null，表示此元素已被缓存 - 丢弃缓存的元素
     if (child == null) {
       final RenderBox? cachedChild = _keepAliveBucket[index];
       if (cachedChild != null) {
@@ -318,33 +244,29 @@ abstract class RenderSliverVariableSizeBoxAdaptor extends RenderSliver
         child.layout(childConstraints, parentUsesSize: parentUsesSize);
         return child;
       } on Exception catch (err) {
-        debugPrint('$err, addAndLayoutChild: This not Error.');
+        debugPrint('$err, addAndLayoutChild: 这不是错误。');
       }
     }
     childManager.setDidUnderflow(true);
     return null;
   }
 
-  /// Called after layout with the number of children that can be garbage
-  /// collected at the head and tail of the child list.
+  /// 布局后调用，带有可在子列表的头部和尾部进行垃圾回收的子项数。
   ///
-  /// Children whose [SliverVariableSizeBoxAdaptorParentData.keepAlive] property is
-  /// set to true will be removed to a cache instead of being dropped.
+  /// [SliverVariableSizeBoxAdaptorParentData.keepAlive] 属性为 true 的子项将被移除到缓存中，而不是被丢弃。
   ///
-  /// This method also collects any children that were previously kept alive but
-  /// are now no longer necessary. As such, it should be called every time
-  /// [performLayout] is run, even if the arguments are both zero.
+  /// 此方法还会收集以前保持存活但现在不再需要的任何子项。
   @protected
   void collectGarbage(Set<int> visibleIndices) {
     assert(_debugAssertChildListLocked());
     assert(childCount >= visibleIndices.length);
     invokeLayoutCallback<SliverConstraints>((SliverConstraints constraints) {
-      // We destroy only those which are not visible.
+      // 我们只销毁那些不可见的。
+      // [修复说明]: 现在由于 Element 不再强制 keepAlive=true，
+      // 这里的 _destroyOrCacheChild 将正确地销毁那些没有被 AutomaticKeepAlive 保护的子项。
       indices.toSet().difference(visibleIndices).forEach(_destroyOrCacheChild);
 
-      // Ask the child manager to remove the children that are no longer being
-      // kept alive. (This should cause _keepAliveBucket to change, so we have
-      // to prepare our list ahead of time.)
+      // 要求子管理器移除不再保持存活的子项。
       _keepAliveBucket.values
           .where((RenderBox child) {
             final childParentData = child.parentData! as SliverVariableSizeBoxAdaptorParentData;
@@ -359,16 +281,14 @@ abstract class RenderSliverVariableSizeBoxAdaptor extends RenderSliver
     });
   }
 
-  /// Returns the index of the given child, as given by the
-  /// [SliverVariableSizeBoxAdaptorParentData.index] field of the child's [parentData].
+  /// 返回给定子项的索引，由其 [parentData] 的 [SliverVariableSizeBoxAdaptorParentData.index] 字段给出。
   int indexOf(RenderBox child) {
     final childParentData = child.parentData! as SliverVariableSizeBoxAdaptorParentData;
     assert(childParentData.index != null);
     return childParentData.index!;
   }
 
-  /// Returns the dimension of the given child in the main axis, as given by the
-  /// child's [RenderBox.size] property. This is only valid after layout.
+  /// 返回主轴上给定子项的尺寸，由子项的 [RenderBox.size] 属性给出。这仅在布局后有效。
   @protected
   double paintExtentOf(RenderBox child) {
     assert(child.hasSize);
@@ -396,7 +316,7 @@ abstract class RenderSliverVariableSizeBoxAdaptor extends RenderSliver
     try {
       return childScrollOffset(child)! - (constraints.scrollOffset);
     } on Exception catch (err) {
-      debugPrint('$err, childMainAxisPosition: This not Error.');
+      debugPrint('$err, childMainAxisPosition: 这不是错误。');
       return 0.0;
     }
   }
@@ -425,8 +345,7 @@ abstract class RenderSliverVariableSizeBoxAdaptor extends RenderSliver
     if (childCount == 0) {
       return;
     }
-    // offset is to the top-left corner, regardless of our axis direction.
-    // originOffset gives us the delta from the real origin to the origin in the axis direction.
+    // offset 指向左上角，无论我们的轴方向如何。
     Offset? mainAxisUnit, crossAxisUnit, originOffset;
     bool? addExtent;
     switch (applyGrowthDirectionToAxisDirection(constraints.axisDirection, constraints.growthDirection)) {
@@ -473,8 +392,7 @@ abstract class RenderSliverVariableSizeBoxAdaptor extends RenderSliver
   @override
   void debugFillProperties(DiagnosticPropertiesBuilder properties) {
     super.debugFillProperties(properties);
-    properties.add(DiagnosticsNode.message(
-        childCount > 0 ? 'currently live children: ${indices.join(',')}' : 'no children current live'));
+    properties.add(DiagnosticsNode.message(childCount > 0 ? '当前存活的子项: ${indices.join(',')}' : '没有当前存活的子项'));
   }
 
   @override
@@ -483,14 +401,14 @@ abstract class RenderSliverVariableSizeBoxAdaptor extends RenderSliver
     if (childCount > 0) {
       for (final child in children) {
         final childParentData = child.parentData! as SliverVariableSizeBoxAdaptorParentData;
-        childList.add(child.toDiagnosticsNode(name: 'child with index ${childParentData.index}'));
+        childList.add(child.toDiagnosticsNode(name: '索引为 ${childParentData.index} 的子项'));
       }
     }
     if (_keepAliveBucket.isNotEmpty) {
       final List<int> indices = _keepAliveBucket.keys.toList()..sort();
       for (final index in indices) {
         childList.add(_keepAliveBucket[index]!.toDiagnosticsNode(
-          name: 'child with index $index (kept alive offstage)',
+          name: '索引为 $index 的子项 (保持存活且不可见)',
           style: DiagnosticsTreeStyle.offstage,
         ));
       }

@@ -2,44 +2,38 @@ import 'dart:collection';
 
 import 'package:flutter/rendering.dart';
 
-/// Generic mixin for render objects with a list of children.
+/// 具有子列表的渲染对象的通用 Mixin。
 ///
-/// Provides a child model for a render object subclass that stores children
-/// in a HashMap.
-mixin TileContainerRenderObjectMixin<ChildType extends RenderObject,
-    ParentDataType extends ParentData> on RenderObject {
-  final SplayTreeMap<int, ChildType> _childRenderObjects =
-      SplayTreeMap<int, ChildType>();
+/// 为渲染对象子类提供一个子模型，将子项存储在 HashMap 中。
+mixin TileContainerRenderObjectMixin<ChildType extends RenderObject, ParentDataType extends ParentData>
+    on RenderObject {
+  final SplayTreeMap<int, ChildType> _childRenderObjects = SplayTreeMap<int, ChildType>();
 
-  /// The number of children.
+  /// 子项的数量。
   int get childCount => _childRenderObjects.length;
 
   Iterable<ChildType> get children => _childRenderObjects.values;
 
   Iterable<int> get indices => _childRenderObjects.keys;
 
-  /// Checks whether the given render object has the correct [runtimeType] to be
-  /// a child of this render object.
+  /// 检查给定的渲染对象是否具有正确的 [runtimeType] 以成为此渲染对象的子项。
   ///
-  /// Does nothing if assertions are disabled.
+  /// 如果禁用断言，则不执行任何操作。
   ///
-  /// Always returns true.
+  /// 始终返回 true。
   bool debugValidateChild(RenderObject child) {
     assert(() {
       if (child is! ChildType) {
-        throw FlutterError(
-            'A $runtimeType expected a child of type $ChildType but received a '
-            'child of type ${child.runtimeType}.\n'
-            'RenderObjects expect specific types of children because they '
-            'coordinate with their children during layout and paint. For '
-            'example, a RenderSliver cannot be the child of a RenderBox because '
-            'a RenderSliver does not understand the RenderBox layout protocol.\n'
+        throw FlutterError('一个 $runtimeType 期望一个 $ChildType 类型的子项，但接收到了一个 '
+            '${child.runtimeType} 类型的子项。\n'
+            'RenderObjects 期望特定类型的子项，因为它们在布局和绘制期间 '
+            '与其子项协调。例如，RenderSliver 不能是 RenderBox 的子项，因为 '
+            'RenderSliver 不理解 RenderBox 布局协议。\n'
             '\n'
-            'The $runtimeType that expected a $ChildType child was created by:\n'
+            '期望 $ChildType 子项的 $runtimeType 是由以下创建的：\n'
             '  $debugCreator\n'
             '\n'
-            'The ${child.runtimeType} that did not match the expected child type '
-            'was created by:\n'
+            '不符合预期子类型的 ${child.runtimeType} 是由以下创建的：\n'
             '  ${child.debugCreator}\n');
       }
       return true;
@@ -62,7 +56,7 @@ mixin TileContainerRenderObjectMixin<ChildType extends RenderObject,
     _childRenderObjects.values.forEach(f);
   }
 
-  /// Remove the child at the specified index from the child list.
+  /// 从子列表中移除指定索引处的子项。
   void remove(int index) {
     final child = _childRenderObjects.remove(index);
     _removeChild(child);
@@ -70,14 +64,14 @@ mixin TileContainerRenderObjectMixin<ChildType extends RenderObject,
 
   void _removeChild(ChildType? child) {
     if (child != null) {
-      // Remove the old child.
+      // 移除旧子项。
       dropChild(child);
     }
   }
 
-  /// Remove all their children from this render object's child list.
+  /// 从此渲染对象的子列表中移除所有子项。
   ///
-  /// More efficient than removing them individually.
+  /// 比逐个移除它们更有效。
   void removeAll() {
     _childRenderObjects.values.forEach(dropChild);
     _childRenderObjects.clear();
@@ -112,8 +106,7 @@ mixin TileContainerRenderObjectMixin<ChildType extends RenderObject,
   @override
   List<DiagnosticsNode> debugDescribeChildren() {
     final List<DiagnosticsNode> children = <DiagnosticsNode>[];
-    _childRenderObjects.forEach((index, child) =>
-        children.add(child.toDiagnosticsNode(name: 'child $index')));
+    _childRenderObjects.forEach((index, child) => children.add(child.toDiagnosticsNode(name: '子项 $index')));
     return children;
   }
 }
