@@ -1,4 +1,4 @@
-# staggered_grid
+# example
 
 A new Flutter project.
 
