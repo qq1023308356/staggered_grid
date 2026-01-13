@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:staggered_grid/staggered_grid.dart';
 
 // 假设你提供的代码保存在这个文件中，或者你可以直接把上面的类定义和下面的代码放在同一个文件里
-// import 'staggered_grid_view.dart';
+// import 'staggered_grid.dart';
 
 void main() {
   runApp(

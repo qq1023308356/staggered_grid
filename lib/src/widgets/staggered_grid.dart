@@ -3,8 +3,8 @@ import 'package:staggered_grid/src/rendering/sliver_staggered_grid.dart';
 import 'package:staggered_grid/src/widgets/sliver.dart';
 import 'package:staggered_grid/src/widgets/staggered_tile.dart';
 
-class StaggeredGridView extends BoxScrollView {
-  StaggeredGridView({
+class StaggeredGrid extends BoxScrollView {
+  StaggeredGrid({
     super.key,
     super.scrollDirection,
     super.reverse,
@@ -41,7 +41,7 @@ class StaggeredGridView extends BoxScrollView {
   /// `addRepaintBoundaries` 参数对应于
   /// [SliverVariableSizeChildBuilderDelegate.addRepaintBoundaries] 属性。
   /// 两者都不能为 null。
-  StaggeredGridView.builder({
+  StaggeredGrid.builder({
     super.key,
     super.scrollDirection,
     super.reverse,
@@ -71,7 +71,7 @@ class StaggeredGridView extends BoxScrollView {
   /// [SliverStaggeredGridDelegate.builder] 构造函数。
   ///
   /// [gridDelegate] 和 [childrenDelegate] 参数不能为空。
-  const StaggeredGridView.custom({
+  const StaggeredGrid.custom({
     super.key,
     super.scrollDirection,
     super.reverse,
@@ -99,7 +99,7 @@ class StaggeredGridView extends BoxScrollView {
   /// 参见:
   ///
   ///  * [SliverGrid.count]，[SliverGrid] 的等效构造函数。
-  StaggeredGridView.count({
+  StaggeredGrid.count({
     super.key,
     super.scrollDirection,
     super.reverse,
@@ -146,7 +146,7 @@ class StaggeredGridView extends BoxScrollView {
   /// `addRepaintBoundaries` 参数对应于
   /// [SliverVariableSizeChildListDelegate.addRepaintBoundaries] 属性。
   /// 两者都不能为 null。
-  StaggeredGridView.countBuilder({
+  StaggeredGrid.countBuilder({
     super.key,
     super.scrollDirection,
     super.reverse,
@@ -196,7 +196,7 @@ class StaggeredGridView extends BoxScrollView {
   /// 参见:
   ///
   ///  * [SliverGrid.extent]，[SliverGrid] 的等效构造函数。
-  StaggeredGridView.extent({
+  StaggeredGrid.extent({
     super.key,
     super.scrollDirection,
     super.reverse,
@@ -242,7 +242,7 @@ class StaggeredGridView extends BoxScrollView {
   /// 参见:
   ///
   ///  * [SliverGrid.extent]，[SliverGrid] 的等效构造函数。
-  StaggeredGridView.extentBuilder({
+  StaggeredGrid.extentBuilder({
     super.key,
     super.scrollDirection,
     super.reverse,
@@ -274,13 +274,13 @@ class StaggeredGridView extends BoxScrollView {
           addRepaintBoundaries: addRepaintBoundaries,
         );
 
-  /// 控制 [StaggeredGridView] 中子项布局的代理。
+  /// 控制 [StaggeredGrid] 中子项布局的代理。
   ///
-  /// [StaggeredGridView] 和 [StaggeredGridView.custom] 构造函数允许你明确指定此代理。
+  /// [StaggeredGrid] 和 [StaggeredGridView.custom] 构造函数允许你明确指定此代理。
   /// 其他构造函数隐式创建 [gridDelegate]。
   final SliverStaggeredGridDelegate gridDelegate;
 
-  /// 为 [StaggeredGridView] 提供子项的代理。
+  /// 为 [StaggeredGrid] 提供子项的代理。
   ///
   /// [StaggeredGridView.custom] 构造函数允许你明确指定此代理。
   /// 其他构造函数创建一个包装给定子列表的 [childrenDelegate]。
